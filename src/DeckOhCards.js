@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import Card from "./Card";
 import axios from "axios";
+import "./DeckOhCards.css"
 
 /** shows current card and allows user to load another card
  *
@@ -16,7 +18,7 @@ function DeckOhCards() {
     data: null,
     isLoading: true,
   });
-  const [card, setCard] = useState(false);
+  const [cards, setCards] = useState([]);
 
   useEffect(() => {
     async function getDeck() {
@@ -33,24 +35,37 @@ function DeckOhCards() {
 
   /**get a single card from the deck if one is available */
   async function getNewCard() {
-    let newCard = await axios.get(
+    let response = await axios.get(
       `https://deckofcardsapi.com/api/deck/${deck.data.deck_id}/draw/?count=1`
     );
 
-    if (!newCard.data.remaining) {
+    if (!response.data.remaining) {
       window.alert("Error: No cards remaining!");
       console.log(deck.data.remaining);
       return;
     }
-    setCard(newCard.data.cards[0].image);
+
+    const newCard = response.data.cards[0].image;
+    setCards((curr) => [newCard, ...curr]);
   }
 
   if (deck.isLoading) return <h1>Loading....</h1>;
 
+  function renderCards() {
+    return cards.map((card) => <Card card={card} />);
+  }
+
   return (
-    <div>
-      {card ? <img src={card} alt="card" /> : <h2>Click to begin!</h2>}
-      <button onClick={getNewCard}>Click for card!</button>
+    <div className="game">
+      <div className="button-wrapper">
+        <button onClick={getNewCard}>
+          {cards.length === 0 ? "Click to Begin" : "Draw A Card"}
+        </button>
+      </div>
+      <div>
+      {renderCards()}
+
+      </div>
     </div>
   );
 }
